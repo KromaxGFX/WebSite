@@ -1,0 +1,43 @@
+---
+/**
+ * Metadatos comunes de la cabecera HTML.
+ *
+ * @prop titulo - Título de la página (se añade el nombre del sitio)
+ * @prop descripcion - Descripción para SEO y Open Graph
+ * @prop imagen - Imagen Open Graph (ruta absoluta con base)
+ * @prop tipo - 'website' | 'article'
+ */
+
+interface Props {
+  titulo?: string;
+  descripcion?: string;
+  imagen?: string;
+  tipo?: 'website' | 'article';
+}
+
+const { titulo, descripcion, imagen, tipo = 'website' } = Astro.props;
+const tituloCompleto = titulo ? `${titulo} · KromaxGFX` : 'KromaxGFX';
+const urlCanonica = new URL(Astro.url.pathname, Astro.site).toString();
+const imagenOG = imagen ?? new URL('/og-image.png', Astro.site).toString();
+---
+
+<title>{tituloCompleto}</title>
+<meta name="description" content={descripcion} />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="canonical" href={urlCanonica} />
+
+<meta property="og:type" content={tipo} />
+<meta property="og:title" content={tituloCompleto} />
+<meta property="og:description" content={descripcion} />
+<meta property="og:url" content={urlCanonica} />
+<meta property="og:image" content={imagenOG} />
+<meta property="og:site_name" content="KromaxGFX" />
+<meta property="og:locale" content="es_ES" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={tituloCompleto} />
+<meta name="twitter:description" content={descripcion} />
+<meta name="twitter:image" content={imagenOG} />
+
+<link rel="alternate" type="application/rss+xml" title="KromaxGFX" href={new URL('/rss.xml', Astro.site).toString()} />
+<link rel="sitemap" type="application/xml" title="Sitemap" href={new URL('/sitemap-index.xml', Astro.site).toString()} />

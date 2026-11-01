@@ -1,0 +1,167 @@
+---
+titulo: Arquitectura de la API
+descripcion: Diseño del contrato de render, backends, carga dinámica y versión.
+seccion: Arquitectura
+orden: 1
+destacado: true
+---
+
+# Arquitectura de Kromax
+
+Kromax no es un motor, ni un wrapper, ni una capa de abstracción tradicional.
+Es un **contrato de render versionado** que separa *qué* necesita la aplicación
+de *cómo* lo implementa cada API gráfica.
+
+## Visión general
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    APLICACIÓN / MOTOR                       │
+│  (solo conoce <kromax/core.hpp> y el DSL de shaders .kromax) │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      KROMAXCORE                             │
+│  • Definición del contrato (IRenderBackend, tipos, límites) │
+│  • Loader de backends (descubrimiento, selección, versión)  │
+│  • Tests de conformidad (interfaz, no implementación)       │
+│  • Cero dependencias gráficas                               │
+└─────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┼───────────────┐
+              ▼               ▼               ▼
+       ┌───────────┐   ┌───────────┐   ┌───────────┐
+       │  VULKAN   │   │   METAL   │   │   DX12    │
+       │ KromaxVk  │   │ KromaxMt  │   │ KromaxDx  │
+       └───────────┘   └───────────┘   └───────────┘
+              ▲               ▲               ▲
+              └───────────────┼───────────────┘
+                              ▼
+                     ┌───────────────┐
+                     │   WEBGPU      │
+                     │ KromaxWgpu    │
+                     └───────────────┘
+```
+
+## El contrato (`IRenderBackend`)
+
+El contrato es una interfaz C++ pura (clase abstracta) que define:
+
+### 1. Recursos opacos
+
+```cpp
+// Handles opacos: el backend decide la representación interna
+using BufferHandle = uint64_t;
+using TexturaHandle = uint64_t;
+using PipelineHandle = uint64_t;
+using SamplerHandle = uint64_t;
+using BindGroupHandle = uint64_t;
+```
+
+### 2. Creación de recursos
+
+```cpp
+virtual BufferHandle crearBuffer(const BufferDesc&) = 0;
+virtual TexturaHandle crearTextura(const TexturaDesc&) = 0;
+virtual PipelineHandle crearPipelineRender(const PipelineRenderDesc&) = 0;
+virtual PipelineHandle crearPipelineCompute(const PipelineComputeDesc&) = 0;
+virtual BindGroupHandle crearBindGroup(const BindGroupDesc&) = 0;
+```
+
+### 3. Comandos de render
+
+```cpp
+virtual void cmdIniciarRenderPass(const RenderPassDesc&) = 0;
+virtual void cmdFinalizarRenderPass() = 0;
+virtual void cmdDibujar(uint32_t vertices, uint32_t instancias, uint32_t firstVertex, uint32_t firstInstance) = 0;
+virtual void cmdDibujarIndexado(uint32_t indices, uint32_t instancias, ...) = 0;
+virtual void cmdDispatch(uint32_t x, uint32_t y, uint32_t z) = 0;
+```
+
+### 4. Sincronización
+
+```cpp
+virtual void cmdBarrera(const Barrera&) = 0;
+virtual SemaphoreHandle crearSemaphore() = 0;
+virtual void signalSemaphore(SemaphoreHandle, uint64_t valor) = 0;
+virtual void waitSemaphore(SemaphoreHandle, uint64_t valor) = 0;
+```
+
+### 5. Ciclo de vida del dispositivo
+
+```cpp
+virtual bool inicializar(const DispositivoDesc&) = 0;
+virtual void apagar() = 0;
+virtual LimitesDispositivo limites() const = 0;
+virtual PropiedadesFormato propiedadesFormato(Formato) const = 0;
+```
+
+## Carga dinámica de backends
+
+Los backends son **bibliotecas compartidas** (`.so`, `.dylib`, `.dll`, `.wasm`)
+que exportan un símbolo único:
+
+```cpp
+// Símbolo exportado por cada backend
+extern "C" KROMAX_BACKEND_API const kromax::BackendInfo* kromax_backend_info();
+```
+
+`KromaxCore` descubre backends en:
+- Rutas de instalación del sistema (`/usr/lib/kromax`, `C:\Program Files\Kromax\backends`)
+- `KX_BACKEND_PATH` (variable de entorno)
+- Directorio del ejecutable (`./backends`)
+
+## Versionado
+
+- **Contrato (KromaxCore)**: SemVer (MAJOR.MINOR.PATCH).
+  - MAJOR: ruptura de ABI/API del contrato.
+  - MINOR: nuevas capacidades opcionales (feature flags).
+  - PATCH: correcciones, sin cambios de interfaz.
+
+- **Backends**: versionados independientemente, pero declaran
+  `versionContratoRequerida` en `BackendInfo`. Un backend v2.3.1 puede
+  implementar contrato v1.4.0.
+
+## Tests de conformidad
+
+La suite `KromaxConformance` prueba **el contrato**, no la implementación.
+Cada test instancia `IRenderBackend` y verifica:
+
+1. **Comportamiento funcional**: `crearBuffer` → `cmdCopiar` → `leer` = datos correctos.
+2. **Límites**: respeta `limites().maxBufferSize`, `maxTextureDimension`, etc.
+3. **Sincronización**: barreras, semáforos, fences funcionan según especificación.
+4. **Robustez**: uso después de free, double-free, handles inválidos → error controlado.
+5. **Rendimiento**: baselines por operación (opcional, no bloqueante).
+
+Un backend **debe** pasar el 100% de tests obligatorios para cada versión del
+contrato que declare soportar.
+
+## Extensiones opcionales (Feature Flags)
+
+El contrato base es mínimo. Capacidades avanzadas se exponen como *feature flags*
+consultables en runtime:
+
+```cpp
+if (dispositivo.soporta(kromax::Feature::RAY_TRACING)) {
+    // Usar ray tracing
+}
+
+if (dispositivo.soporta(kromax::Feature::MESH_SHADERS)) {
+    // Usar mesh shaders
+}
+```
+
+Esto permite que backends maduros expongan más sin romper backends mínimos
+(OpenGL, WebGPU básico).
+
+## Principios de diseño
+
+| Principio | Qué significa |
+|-----------|---------------|
+| **Cero dependencias en el núcleo** | `KromaxCore` no enlaza Vulkan, Metal, DX12, WebGPU. |
+| **Contrato versionado** | Cambios de ruptura = MAJOR bump, migración documentada. |
+| **Tests de conformidad obligatorios** | No hay "funciona en mi máquina". |
+| **Descubrimiento en runtime** | La app no linka backends; los carga dinámicamente. |
+| **Sin abstracciones con fugas** | Si una feature no es portable, no está en el contrato base. |
+| **Diagnósticos accionables** | Errores del backend mapeados a códigos de error del contrato. |

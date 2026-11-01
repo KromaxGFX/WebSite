@@ -1,0 +1,142 @@
+---
+import Marca from './Marca.astro';
+import { SITE, ruta } from '../lib/site';
+import { obtenerProyectos } from '../lib/proyectos';
+
+const proyectos = await obtenerProyectos();
+const anio = SITE.copyright;
+---
+
+<footer class="pie">
+  <div class="pie__interior container container--wide">
+    <div class="pie__columna pie__columna--marca">
+      <Marca />
+      <p class="pie__lema">{SITE.descripcionCorta}</p>
+      <p class="pie__licencia">
+        Código y documentación bajo licencia <strong>Apache 2.0</strong>.
+      </p>
+    </div>
+
+    <nav class="pie__columna" aria-label="Proyectos">
+      <h2 class="pie__titulo">Proyectos</h2>
+      <ul class="pie__lista">
+        {
+          proyectos.map((proyecto) => (
+            <li>
+              <a href={ruta(`/proyectos/${proyecto.data.clave}/`)}>{proyecto.data.nombre}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav class="pie__columna" aria-label="Documentación">
+      <h2 class="pie__titulo">Documentación</h2>
+      <ul class="pie__lista">
+        <li><a href={ruta('/docs/')}>Índice general</a></li>
+        <li><a href={ruta('/docs/arquitectura/')}>Arquitectura de la API</a></li>
+        <li><a href={ruta('/docs/guia-inicio/')}>Primeros pasos</a></li>
+        <li><a href={ruta('/docs/guia-backends/')}>Backends soportados</a></li>
+        <li><a href={ruta('/docs/guia-portabilidad/')}>Portabilidad</a></li>
+        <li><a href={ruta('/docs/guia-estilo-de-codigo/')}>Estilo de código</a></li>
+        <li><a href={ruta('/docs/guia-ramas-y-commits/')}>Ramas y commits</a></li>
+      </ul>
+    </nav>
+
+    <div class="pie__columna">
+      <h2 class="pie__titulo">Comunidad</h2>
+      <ul class="pie__lista">
+        <li>
+          <a href={SITE.repositorio} target="_blank" rel="noreferrer noopener">GitHub</a>
+        </li>
+        <li><a href={ruta('/acerca-de/')}>Acerca del proyecto</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pie__barra container container--wide">
+    <p>&copy; {anio} {SITE.organizacion}. Documentación bajo licencia Apache 2.0.</p>
+  </div>
+</footer>
+
+<style>
+  .pie {
+    margin-block-start: var(--space-10);
+    border-block-start: var(--border-width) solid var(--border-subtle);
+    background: var(--surface-sunken);
+  }
+
+  .pie__interior {
+    display: grid;
+    gap: var(--space-7);
+    padding-block: var(--space-9) var(--space-8);
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 40rem) {
+    .pie__interior {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 62rem) {
+    .pie__interior {
+      grid-template-columns: 1.6fr repeat(3, 1fr);
+      gap: var(--space-8);
+    }
+  }
+
+  .pie__columna--marca {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+
+  .pie__lema {
+    color: var(--text-muted);
+    font-size: var(--text-base);
+    max-width: 34ch;
+  }
+
+  .pie__licencia {
+    color: var(--text-subtle);
+    font-size: var(--text-sm);
+  }
+
+  .pie__licencia strong {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .pie__titulo {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text);
+    margin-block-end: var(--space-3);
+  }
+
+  .pie__lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .pie__lista a {
+    color: var(--text-muted);
+    font-size: var(--text-base);
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .pie__lista a:hover {
+    color: var(--accent);
+  }
+
+  .pie__barra {
+    padding-block: var(--space-4);
+    border-block-start: var(--border-width) solid var(--border-subtle);
+    color: var(--text-subtle);
+    font-size: var(--text-sm);
+  }
+</style>

@@ -1,0 +1,164 @@
+/*
+ * Tokens de diseño del sitio.
+ *
+ * Una sola fuente de verdad para color, tipografía, espaciado y radios.
+ * Los valores semánticos (`--surface`, `--text`, ...) se redeclaran en el
+ * tema oscuro y en el claro: el resto del CSS nunca menciona un color
+ * concreto, solo variables semánticas.
+ *
+ * El registro visual es deliberadamente sobrio: la jerarquía se construye
+ * con tamaño, peso y líneas, no con sombras, degradados ni superficies
+ * curvas. El color de acento se reserva para enlaces, estados activos y
+ * marcas pequeñas.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* ---------------------------------------------------------------- */
+  /* Tipografía                                                        */
+  /* ---------------------------------------------------------------- */
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: 'Newsreader Variable', ui-serif, Georgia, 'Times New Roman',
+    serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular,
+    'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  /* Escala compacta: el sitio es de lectura técnica, no de escaparate. */
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.1875rem;
+  --text-2xl: 1.375rem;
+  --text-3xl: clamp(1.375rem, 1.24rem + 0.65vw, 1.75rem);
+  --text-4xl: clamp(1.625rem, 1.42rem + 1.05vw, 2.125rem);
+  --text-5xl: clamp(1.875rem, 1.6rem + 1.4vw, 2.5rem);
+
+  --leading-tight: 1.22;
+  --leading-snug: 1.42;
+  --leading-normal: 1.6;
+
+  --tracking-tight: -0.012em;
+  --tracking-normal: 0;
+
+  /* ---------------------------------------------------------------- */
+  /* Espaciado (escala de 4px)                                       */
+  /* ---------------------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  --space-9: 4rem;
+  --space-10: 5rem;
+
+  /* ---------------------------------------------------------------- */
+  /* Layout                                                            */
+  /* ---------------------------------------------------------------- */
+  --layout-max: 75rem;
+  --layout-wide: 88rem;
+  --layout-prose: 44rem;
+  --header-height: 3.5rem;
+
+  /* ---------------------------------------------------------------- */
+  /* Formas                                                            */
+  /* ---------------------------------------------------------------- */
+  /* Radios mínimos: el sitio se apoya en líneas rectas y separadores. */
+  --radius-sm: 2px;
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 380ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --border-width: 1px;
+
+  /* ---------------------------------------------------------------- */
+  /* Tema oscuro (por defecto)                                        */
+  /* ---------------------------------------------------------------- */
+  --ink-950: #07080b;
+  --ink-900: #0b0d12;
+  --ink-850: #10131a;
+  --ink-800: #151923;
+  --ink-700: #1d222e;
+  --ink-600: #2a3040;
+  --ink-500: #3d4557;
+  --ink-400: #5b6478;
+  --ink-300: #8a93a6;
+  --ink-200: #b6bdcc;
+  --ink-100: #dde2ea;
+  --ink-050: #f2f4f8;
+
+  --accent-300: #f7cf8f;
+  --accent-400: #eab463;
+  --accent-500: #d99a45;
+  --accent-600: #bd7f2c;
+  --accent-700: #96601f;
+
+  --steel-400: #7f92b3;
+  --steel-500: #64789b;
+
+  --page: var(--ink-950);
+  --page-veil: rgba(7, 8, 11, 0.86);
+  --surface: var(--ink-900);
+  --surface-raised: var(--ink-850);
+  --surface-sunken: var(--ink-950);
+  --surface-inset: rgba(255, 255, 255, 0.025);
+  --surface-hover: rgba(255, 255, 255, 0.045);
+
+  --text: var(--ink-050);
+  --text-muted: var(--ink-300);
+  --text-subtle: var(--ink-400);
+  --text-inverse: var(--ink-950);
+
+  --accent: var(--accent-400);
+  --accent-strong: var(--accent-300);
+  --accent-contrast: #1a1204;
+  --accent-line: rgba(234, 180, 99, 0.3);
+
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+
+  --code-bg: var(--ink-900);
+
+  --focus-ring: var(--accent-400);
+}
+
+/* ------------------------------------------------------------------ */
+/* Tema claro                                                          */
+/* ------------------------------------------------------------------ */
+:root[data-theme='light'] {
+  --page: #fbfaf8;
+  --page-veil: rgba(251, 250, 248, 0.88);
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f2f0ec;
+  --surface-inset: rgba(16, 19, 26, 0.02);
+  --surface-hover: rgba(16, 19, 26, 0.045);
+
+  --text: var(--ink-900);
+  --text-muted: var(--ink-400);
+  --text-subtle: var(--ink-500);
+  --text-inverse: var(--ink-050);
+
+  --accent: var(--accent-600);
+  --accent-strong: var(--accent-700);
+  --accent-contrast: #fffaf2;
+  --accent-line: rgba(189, 127, 44, 0.32);
+
+  --border: rgba(16, 19, 26, 0.13);
+  --border-strong: rgba(16, 19, 26, 0.22);
+  --border-subtle: rgba(16, 19, 26, 0.08);
+
+  --code-bg: #f2f0ec;
+
+  --focus-ring: var(--accent-600);
+}

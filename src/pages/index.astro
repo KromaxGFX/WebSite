@@ -1,0 +1,432 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import Boton from '../components/Boton.astro';
+import { obtenerProyectos } from '../lib/proyectos';
+import { obtenerDocs } from '../lib/docs';
+import { SITE, ruta } from '../lib/site';
+
+const proyectos = await obtenerProyectos();
+const docs = await obtenerDocs();
+const destacados = docs.filter((d) => d.data.destacado).slice(0, 3);
+
+const principios = [
+  {
+    titulo: 'Un contrato, mil backends',
+    texto:
+      'Kromax define qué necesita el render y cada backend lo traduce a su API nativa. Añadir un backend no obliga a tocar el motor.',
+  },
+  {
+    titulo: 'El núcleo no depende de la pantalla',
+    texto:
+      'La lógica de la API es agnóstica del transporte: Vulkan, Metal, DirectX 12, WebGPU, OpenGL... el mismo código funciona en todos.',
+  },
+  {
+    titulo: 'Portabilidad real, no abstracción con fugas',
+    texto:
+      'Cada afirmación se puede comprobar contra la especificación y los tests de conformidad. No hay "funciona en mi máquina".',
+  },
+];
+
+const datos = [
+  { valor: String(proyectos.length), texto: 'repositorios' },
+  { valor: String(docs.length), texto: 'páginas de documentación' },
+  { valor: '6+', texto: 'backends gráficos' },
+];
+---
+
+<BaseLayout
+  titulo="API gráfica multiplataforma para todos los dispositivos"
+  descripcion={SITE.descripcion}
+>
+  <!-- Encabezado principal -->
+  <section class="hero">
+    <div class="hero__interior container">
+      <h1 class="hero__titulo">
+        Una API gráfica para todos los dispositivos que puedan mostrar gráficos
+      </h1>
+
+      <p class="hero__entradilla">
+        {SITE.descripcion}
+      </p>
+
+      <div class="hero__acciones">
+        <Boton href={ruta('/proyectos/')}>Ver los proyectos</Boton>
+        <Boton variante="secundario" href={ruta('/docs/')}>Leer la documentación</Boton>
+      </div>
+
+      <ul class="hero__datos">
+        {
+          datos.map((dato) => (
+            <li>
+              <strong>{dato.valor}</strong> {dato.texto}
+            </li>
+          ))
+        }
+        <li>Licencia Apache 2.0</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Principios -->
+  <section class="seccion" aria-labelledby="titulo-principios">
+    <div class="container">
+      <p class="rotulo">Principios</p>
+      <h2 class="section-heading" id="titulo-principios">Criterios de diseño</h2>
+
+      <ul class="principios">
+        {
+          principios.map((principio) => (
+            <li class="principio">
+              <h3 class="principio__titulo">{principio.titulo}</h3>
+              <p class="principio__texto">{principio.texto}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Proyectos -->
+  <section class="seccion seccion--alternada" aria-labelledby="titulo-proyectos">
+    <div class="container">
+      <div class="seccion__cabecera">
+        <div>
+          <p class="rotulo">Proyectos</p>
+          <h2 class="section-heading" id="titulo-proyectos">Repositorios</h2>
+          <p class="section-lede">
+            Un repositorio por responsabilidad. Cada uno se puede leer, compilar y
+            usar por separado, y el conjunto resuelve más que la suma de las partes.
+          </p>
+        </div>
+        <a class="enlace-flecha" href={ruta('/proyectos/')}>
+          Ver todos
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M5 12h13m0 0-5.5-5.5M18 12l-5.5 5.5"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </a>
+      </div>
+
+      <div class="rejilla-proyectos">
+        {proyectos.map((proyecto) => <ProjectCard proyecto={proyecto} detallado />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- Arquitectura -->
+  <section class="seccion" aria-labelledby="titulo-arquitectura">
+    <div class="container">
+      <p class="rotulo">Arquitectura</p>
+      <h2 class="section-heading" id="titulo-arquitectura">Cómo encaja todo</h2>
+      <p class="section-lede">
+        La API de Kromax es el contrato que permite mantener múltiples backends
+        sin duplicar lógica, y un núcleo portable que cualquier aplicación puede consumir.
+      </p>
+
+      <div class="arquitectura">
+        <div class="arquitectura__placeholder">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="color: var(--text-subtle);">
+            <rect x="2" y="2" width="20" height="20" rx="2" stroke="currentColor" stroke-width="1.5"></rect>
+            <path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+          </svg>
+          <p>Diagrama de arquitectura (próximamente)</p>
+        </div>
+      </div>
+
+      <p class="arquitectura__nota">
+        La especificación completa, con las decisiones y sus motivos, está en la
+        <a href={ruta('/docs/arquitectura/')}>documentación de arquitectura</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- Documentación -->
+  <section class="seccion seccion--alternada" aria-labelledby="titulo-docs">
+    <div class="container">
+      <div class="seccion__cabecera">
+        <div>
+          <p class="rotulo">Documentación</p>
+          <h2 class="section-heading" id="titulo-docs">Manuales y guías</h2>
+          <p class="section-lede">
+            Manuales de uso, guías de arquitectura, convenciones y notas de los
+            proyectos. La documentación vive junto al código y se actualiza con él.
+          </p>
+        </div>
+        <a class="enlace-flecha" href={ruta('/docs/')}>
+          Índice completo
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M5 12h13m0 0-5.5-5.5M18 12l-5.5 5.5"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </a>
+      </div>
+
+      <ul class="rejilla-docs">
+        {
+          destacados.map((doc) => (
+            <li>
+              <a class="doc-enlace" href={ruta(`/docs/${doc.id}/`)}>
+                <span class="doc-enlace__seccion">{doc.data.seccion}</span>
+                <h3 class="doc-enlace__titulo">{doc.data.titulo}</h3>
+                <p class="doc-enlace__texto">{doc.data.descripcion}</p>
+                <span class="doc-enlace__cta">Abrir la página</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Cierre -->
+  <section class="cierre">
+    <div class="container container--prose">
+      <h2 class="cierre__titulo">Por dónde empezar</h2>
+      <p class="cierre__texto">
+        Para integrar Kromax en tu motor, la guía de primeros pasos. Para
+        implementar un backend, la especificación de la API. Para portar a una
+        nueva plataforma, la guía de portabilidad.
+      </p>
+      <div class="cierre__acciones">
+        <Boton href={ruta('/docs/guia-inicio/')}>Primeros pasos</Boton>
+        <Boton variante="secundario" href={SITE.repositorio} externo>Ver en GitHub</Boton>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ---------------------------------------------------------------- */
+  /* Encabezado principal                                              */
+  /* ---------------------------------------------------------------- */
+  .hero {
+    position: relative;
+    padding-block: var(--space-8) var(--space-7);
+    border-block-end: var(--border-width) solid var(--border-subtle);
+  }
+
+  .hero__interior {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+
+  .hero__titulo {
+    font-size: var(--text-4xl);
+    max-width: 30ch;
+  }
+
+  .hero__entradilla {
+    max-width: 64ch;
+    font-size: var(--text-md);
+    color: var(--text-muted);
+    line-height: var(--leading-snug);
+  }
+
+  .hero__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-2);
+  }
+
+  .hero__datos {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+    margin: var(--space-5) 0 0;
+    padding-block-start: var(--space-4);
+    border-block-start: var(--border-width) solid var(--border-subtle);
+    width: 100%;
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+  }
+
+  .hero__datos li + li {
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--border-width) solid var(--border-subtle);
+  }
+
+  .hero__datos strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Secciones                                                         */
+  /* ---------------------------------------------------------------- */
+  .seccion {
+    padding-block: var(--space-9);
+  }
+
+  .seccion--alternada {
+    background: var(--surface-sunken);
+    border-block: var(--border-width) solid var(--border-subtle);
+  }
+
+  .seccion__cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-block-end: var(--space-6);
+  }
+
+  .enlace-flecha {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--text-muted);
+    padding-block: var(--space-2);
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .enlace-flecha:hover {
+    color: var(--accent);
+  }
+
+  /* Principios */
+  .principios {
+    list-style: none;
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+
+  .principio {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    padding-block-start: var(--space-4);
+    border-block-start: var(--border-width) solid var(--border);
+  }
+
+  .principio__titulo {
+    font-size: var(--text-lg);
+  }
+
+  .principio__texto {
+    color: var(--text-muted);
+    font-size: var(--text-base);
+  }
+
+  /* Proyectos */
+  .rejilla-proyectos {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  }
+
+  /* Arquitectura */
+  .arquitectura {
+    margin-block-start: var(--space-6);
+  }
+
+  .arquitectura__placeholder {
+    display: grid;
+    place-items: center;
+    gap: var(--space-4);
+    padding: var(--space-8);
+    border: var(--border-width) dashed var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    text-align: center;
+    color: var(--text-subtle);
+  }
+
+  .arquitectura__nota {
+    margin-block-start: var(--space-5);
+    font-size: var(--text-base);
+    color: var(--text-muted);
+  }
+
+  .arquitectura__nota a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  /* Documentación */
+  .rejilla-docs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  }
+
+  .doc-enlace {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    height: 100%;
+    padding: var(--space-5);
+    border-radius: var(--radius-sm);
+    border: var(--border-width) solid var(--border);
+    background: var(--surface);
+    transition: border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .doc-enlace:hover {
+    border-color: var(--border-strong);
+  }
+
+  .doc-enlace__seccion {
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+  }
+
+  .doc-enlace__titulo {
+    font-size: var(--text-lg);
+  }
+
+  .doc-enlace__texto {
+    color: var(--text-muted);
+    font-size: var(--text-base);
+  }
+
+  .doc-enlace__cta {
+    margin-block-start: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  /* Cierre */
+  .cierre {
+    padding-block: var(--space-9);
+  }
+
+  .cierre__titulo {
+    font-size: var(--text-2xl);
+  }
+
+  .cierre__texto {
+    margin-block-start: var(--space-3);
+    color: var(--text-muted);
+    font-size: var(--text-md);
+    line-height: var(--leading-snug);
+  }
+
+  .cierre__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-5);
+  }
+</style>

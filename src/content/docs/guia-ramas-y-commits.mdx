@@ -1,0 +1,146 @@
+---
+titulo: Ramas y commits
+descripcion: "Flujo de trabajo con Git: ramas, convenciones de commit, PRs y merge."
+seccion: Guía
+orden: 5
+destacado: false
+---
+
+# Ramas y commits
+
+Flujo de trabajo unificado para todos los repositorios de KromaxGFX.
+
+## Ramas
+
+### `main`
+- **Protegida**: requiere PR + CI verde + 1 approval.
+- **Siempre desplegable**: cualquier commit en `main` es candidato a release.
+- **Versionado**: tags `vX.Y.Z` solo en `main`.
+
+### `feature/*`
+- Una rama por cambio lógico (issue, feature, fix, refactor).
+- Nombre: `feature/descripcion-corta` (ej. `feature/bindless-descriptors`).
+- Vida corta: se mergea y borra tras PR.
+
+### `release/X.Y`
+- Rama de estabilización para release menor/mayor.
+- Solo *cherry-picks* de fixes críticos desde `main`.
+- Se taggea `vX.Y.0`, `vX.Y.1`, etc. desde esta rama.
+
+### `hotfix/*`
+- Fix urgente en release ya publicada.
+- Base: tag de release correspondiente (`v1.2.3`).
+- PR contra `main` y contra `release/1.2` simultáneamente.
+
+## Convención de commits
+
+Usamos **Conventional Commits** (sin *scope* obligatorio):
+
+```
+<tipo>: <descripción corta>
+
+[cuerpo opcional]
+
+[footer opcional]
+```
+
+### Tipos
+
+| Tipo | Cuándo usarlo |
+|------|---------------|
+| `feat` | Nueva funcionalidad user-facing |
+| `fix` | Corrección de bug |
+| `docs` | Solo documentación |
+| `refactor` | Cambio interno sin cambio de comportamiento |
+| `perf` | Mejora de rendimiento |
+| `build` | Sistema de build, dependencias, CI |
+| `ci` | Solo configuración de CI |
+| `test` | Añadir/actualizar tests |
+| `chore` | Mantenimiento (deps, tooling, formateo) |
+| `revert` | Revertir commit anterior |
+
+### Ejemplos
+
+```text
+feat: añadir soporte para timeline semaphores en backend Vulkan
+
+Implementa VK_KHR_timeline_semaphore para sincronización fina.
+Añade tests de conformidad para signal/wait con valores.
+
+Closes #42
+```
+
+```text
+fix: corriger leak de memoria en Dispositivo::apagar()
+
+El destructor no liberaba los command pools creados por frame.
+Añadido cleanup en ~Dispositivo() y test de regresión.
+```
+
+```text
+docs: actualizar guía de portabilidad con nuevos feature flags
+
+Añade sección sobre RAY_TRACING y MESH_SHADERS.
+```
+
+```text
+refactor: extraer validación de límites a LimitesDispositivo::validar()
+
+Sin cambio de comportamiento. Prepara para tests parametrizados.
+```
+
+```text
+build: actualizar CMake mínimo a 3.28 y usar presets
+
+Elimina toolchains legacy. Añade presets debug/release/asan.
+```
+
+### Reglas
+
+- **Una línea de asunto** (máx. 72 chars), imperativo, minúscula inicial.
+- **Cuerpo** (opcional) envuelto a 72 chars, explica *qué* y *por qué*, no *cómo*.
+- **Footer** para referencias: `Closes #123`, `Refs #456`, `Breaking-change: ...`.
+- **Un commit = un cambio lógico**. No mezclar refactor + feat + fix.
+- **Sin co-autores**, firmas ni trailers extraños.
+
+## Pull Requests
+
+### Título del PR
+```
+<tipo>: <descripción>  (ej. feat: bindless descriptors para Vulkan)
+```
+
+### Descripción del PR
+1. **Qué cambia** (resumen técnico).
+2. **Por qué** (motivación, issue relacionado).
+3. **Cómo testear** (pasos, comandos, configs).
+4. **Checklist**:
+   - [ ] `npm run verificar:todo` (o `cmake --build --preset=release && ctest`) en verde
+   - [ ] `clang-format` / `clang-tidy` sin warnings
+   - [ ] Tests nuevos/actualizados para lo cambiado
+   - [ ] Docs actualizadas si hay cambio user-facing
+   - [ ] Changelog/Release notes si aplica (`CHANGELOG.md` o `RELEASE_NOTES.md`)
+
+### Revisión
+- **Mínimo 1 approval** de mantenedor del repo afectado.
+- **CI verde** en todas las plataformas (Linux, Windows, macOS).
+- **Sin conflictos** con `main` (rebase si hace falta).
+
+### Merge
+- **Squash and merge** (un commit en `main` con mensaje convencional).
+- **Borrar rama** tras merge.
+- **Tag** si es release (hecho por mantenedor, no automático).
+
+## Changelog
+
+Cada repo mantiene `CHANGELOG.md` (formato Keep a Changelog).
+El commit de release actualiza la sección `## [vX.Y.Z] - YYYY-MM-DD`.
+
+## Versionado
+
+**SemVer estricto** para el contrato (`KromaxCore`):
+- **MAJOR**: ruptura de ABI/API del contrato (`IRenderBackend`).
+- **MINOR**: nueva feature flag, nueva capacidad opcional, nuevo límite.
+- **PATCH**: fix de bug, mejora de rendimiento, doc, CI.
+
+Backends versionan independientemente pero declaran `versionContratoRequerida`.

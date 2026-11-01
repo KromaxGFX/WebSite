@@ -1,0 +1,98 @@
+---
+/**
+ * Botón principal del sitio.
+ *
+ * @prop variante - 'primario' | 'secundario'
+ * @prop externo - si el enlace abre en pestaña nueva
+ * @prop pequeno - versión compacta
+ * @prop href - destino (obliga a renderizar <a>)
+ */
+
+const { variante = 'primario', externo = false, pequeno = false, href, ...attrs } = Astro.props;
+const esEnlace = typeof href === 'string';
+const objetivo = externo ? '_blank' : undefined;
+const rel = externo ? 'noreferrer noopener' : undefined;
+
+const clases = ['boton', `boton--${variante}`, pequeno && 'boton--pequeno'].filter(Boolean).join(' ');
+---
+
+{esEnlace ? (
+  <a
+    class={clases}
+    href={href}
+    target={objetivo}
+    rel={rel}
+    {...attrs}
+  >
+    <slot />
+  </a>
+) : (
+  <button
+    class={clases}
+    type="button"
+    {...attrs}
+  >
+    <slot />
+  </button>
+)}
+
+<style>
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    border: var(--border-width) solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .boton:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .boton--primario {
+    padding: var(--space-3) var(--space-5);
+    color: var(--accent-contrast);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .boton--primario:hover {
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+    color: var(--accent-contrast);
+  }
+
+  .boton--secundario {
+    padding: var(--space-3) var(--space-5);
+    color: var(--text);
+    background: transparent;
+    border-color: var(--border);
+  }
+
+  .boton--secundario:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .boton--pequeno {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-sm);
+  }
+
+  .boton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+</style>

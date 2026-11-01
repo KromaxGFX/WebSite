@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { obtenerNavDocs } from '../../lib/docs';
+
+const nav = await obtenerNavDocs();
+---
+
+<BaseLayout
+  titulo="Documentación"
+  descripcion="Manuales, guías y referencias de KromaxGFX: arquitectura de la API, primeros pasos, backends soportados y portabilidad."
+>
+  <PageHeader
+    etiqueta="Documentación"
+    titulo="Documentación"
+    lede="La documentación vive junto al código y se actualiza con él. Cada página corresponde a un archivo MDX en el repositorio."
+  />
+
+  <section class="seccion">
+    <div class="container">
+      <div class="docs-index">
+        {
+          nav.map((grupo) => (
+            <div class="docs-index__grupo">
+              <h2 class="docs-index__seccion">{grupo.seccion}</h2>
+              <ul class="docs-index__lista">
+                {grupo.paginas.map((pagina) => (
+                  <li>
+                    <a href={pagina.href} class="docs-index__enlace">
+                      {pagina.titulo}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .seccion {
+    padding-block: var(--space-4) var(--space-10);
+  }
+
+  .docs-index {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  @media (min-width: 48rem) {
+    .docs-index {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .docs-index {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .docs-index__grupo {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .docs-index__seccion {
+    font-size: var(--text-lg);
+    color: var(--accent);
+    margin: 0;
+    padding-block-end: var(--space-2);
+    border-block-end: var(--border-width) solid var(--border);
+  }
+
+  .docs-index__lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .docs-index__enlace {
+    display: block;
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-width) solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: var(--text-base);
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .docs-index__enlace:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+</style>

@@ -1,0 +1,63 @@
+# KromaxGFX WebSite — Continuous Integration
+#
+# Runs: install, check, build, verify links
+# Matrix: ubuntu-latest, windows-latest
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-and-build:
+    name: Check + Build + Verify
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [22]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check (TypeScript + Astro templates)
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify links
+        run: npm run verificar
+
+  # Job de resumen para requerir que todos pasen
+  summary:
+    name: CI Summary
+    needs: [check-and-build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [[ "${{ needs.check-and-build.result }}" != "success" ]]; then
+            echo "::error::CI failed"
+            exit 1
+          fi
+        # Note: matrix jobs need explicit check per OS, but needs.<job>.result
+        # only reflects the overall matrix. Use a loop in a real scenario.
+        # For simplicity with 2 OS, we check the aggregate.
+      - name: All CI jobs passed
+        run: echo "✅ All CI jobs passed"

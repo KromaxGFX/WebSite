@@ -1,0 +1,31 @@
+# Auto-detect text files and perform LF normalization
+* text=auto
+
+# Explicitly declare text files
+*.astro text
+*.css text
+*.html text
+*.js text
+*.json text
+*.md text
+*.mdx text
+*.mjs text
+*.svg text
+*.ts text
+*.txt text
+*.xml text
+*.yml text
+*.yaml text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

@@ -1,0 +1,153 @@
+---
+titulo: Estilo de código
+descripcion: Convenciones de C++20, CMake, shaders y documentación para la organización.
+seccion: Guía
+orden: 4
+destacado: false
+---
+
+# Estilo de código
+
+Convenciones compartidas por todos los repositorios de KromaxGFX. La consistencia
+reduce fricción al moverse entre proyectos y facilita revisiones.
+
+## C++20
+
+### General
+
+- **Estándar**: C++20 (módulos, concepts, ranges, `std::format`, corrutinas).
+- **Formato**: `clang-format` con estilo LLVM + ajustes del repo (`.clang-format`).
+- **Análisis estático**: `clang-tidy` con checks `modernize-*`, `performance-*`, `readability-*`, `bugprone-*`.
+- **Warnings**: `-Wall -Wextra -Wpedantic -Werror` en CI. `-Wconversion` en local opcional.
+
+### Nombrado
+
+| Elemento | Convención | Ejemplo |
+|----------|------------|---------|
+| Namespaces | `snake_case` | `kromax::core`, `kromax::vulkan` |
+| Clases/Structs | `PascalCase` | `Dispositivo`, `BufferDesc` |
+| Funciones/métodos | `camelCase` | `crearBuffer()`, `cmdDibujar()` |
+| Variables/parámetros | `snake_case` | `tamano_buffer`, `usar_bindless` |
+| Constantes/compile-time | `SCREAMING_SNAKE` | `MAX_BIND_GROUPS`, `KX_VERSION` |
+| Macros (pocas) | `KX_SCREAMING_SNAKE` | `KX_ASSERT`, `KX_UNLIKELY` |
+| Template params | `PascalCase` | `typename Allocator` |
+| Concepts | `PascalCase` + `Concept` | `AllocatorConcept` |
+
+### Patrones preferidos
+
+- **RAII siempre**: handles envueltos en tipos que liberan en destructor.
+- **`std::expected<T, Error>`** para operaciones fallibles (no excepciones).
+- **`span<T>`** en lugar de `ptr + size` o `vector` por referencia.
+- **`string_view`** para parámetros de solo lectura.
+- **Structs de configuración** (aggregates) en lugar de listas de parámetros largos.
+- **`[[nodiscard]]`** en funciones que devuelven handles, errores o recursos.
+
+```cpp
+// ✅ Bueno: struct de configuración, RAII, expected
+struct BufferDesc {
+    size_t tamano = 0;
+    UsoBuffer uso = UsoBuffer::NONE;
+    Memoria memoria = Memoria::GPU_ONLY;
+    const void* datos_iniciales = nullptr;
+};
+
+[[nodiscard]] std::expected<BufferHandle, Error>
+Dispositivo::crearBuffer(const BufferDesc& desc) noexcept;
+```
+
+### Headers
+
+- **Uno por tipo público** (`dispositivo.hpp`, `buffer.hpp`, `pipeline.hpp`).
+- **Forward declarations** en headers; includes completos en `.cpp`.
+- **Módulos C++20** donde el compilador lo soporte (`export module kromax.core;`).
+- **Include guards** + `#pragma once` (cinturón y tirantes).
+
+```cpp
+// dispositivo.hpp
+#pragma once
+#ifndef KROMAX_DISPOSITIVO_HPP
+#define KROMAX_DISPOSITIVO_HPP
+
+#include <kromax/tipos.hpp>
+#include <expected>
+#include <span>
+
+namespace kromax {
+
+struct DispositivoDesc;
+class Dispositivo;
+
+} // namespace kromax
+#endif
+```
+
+## CMake
+
+- **Presets** (`CMakePresets.json`) para configs comunes: `debug`, `release`, `asan`, `tsan`.
+- **Mínimo 3.28** (soporte nativo C++20, `FetchContent`, presets).
+- **Targets modernos**: `target_compile_features`, `target_include_directories`, `target_link_libraries`.
+- **`FetchContent`** para dependencias (GoogleTest, SPIRV-Tools, etc.), no `find_package` de sistema.
+- **Opciones de build** (`option()`) para features opcionales, no `if(CMAKE_CXX_COMPILER_ID ...)`.
+
+```cmake
+# CMakeLists.txt típico
+cmake_minimum_required(VERSION 3.28)
+project(KromaxVulkan LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Presets definen configs; aquí solo options
+option(KX_BUILD_TESTS "Build tests" ON)
+option(KX_VALIDACION "Enable validation layers" OFF)
+
+add_library(kromax_vulkan STATIC src/backend.cpp)
+target_compile_features(kromax_vulkan PRIVATE cxx_std_20)
+target_include_directories(kromax_vulkan PUBLIC include)
+target_link_libraries(kromax_vulkan PUBLIC kromax_core vulkan::vulkan)
+```
+
+## Shaders (DSL `.kromax`)
+
+- **Basado en GLSL 460 core** + subconjunto WGSL.
+- **Sets y bindings explícitos** (`layout(set = X, binding = Y)`).
+- **Push constants** para datos pequeños frame-local (`layout(push_constant)`).
+- **Nombres de entry points**: `vs_main`, `fs_main`, `cs_main`.
+- **Validación**: `kromax shader compile` en CI y pre-commit.
+
+```glsl
+// mesh.kromax
+#version 460 core
+
+layout(set = 0, binding = 0) uniform Camera { mat4 viewProj; };
+layout(set = 1, binding = 0) sampler samLinear;
+layout(set = 1, binding = 1) texture2D texAlbedo;
+
+layout(location = 0) in vec3 inPos;
+layout(location = 1) in vec2 inUV;
+
+layout(location = 0) out vec2 uv;
+
+void vs_main() {
+    gl_Position = viewProj * vec4(inPos, 1.0);
+    uv = inUV;
+}
+
+void fs_main() {
+    // ...
+}
+```
+
+## Documentación
+
+- **Idioma**: español (todo el texto: prosa, comentarios, identificadores).
+- **Formato**: MDX en `src/content/docs/`, validado por `astro check`.
+- **Frontmatter obligatorio**: `titulo`, `descripcion`, `seccion`, `orden`, `destacado`.
+- **Enlaces internos**: ruta relativa sin base (`](/WebSite/docs/guia-backends/)`).
+- **Código**: bloques con idioma (`cpp`, `cmake`, `glsl`, `bash`).
+- **Actualizada en el mismo commit** que el código que describe.
+
+## Commits y PRs
+
+Ver [Ramas y commits](/WebSite/docs/guia-ramas-y-commits/).

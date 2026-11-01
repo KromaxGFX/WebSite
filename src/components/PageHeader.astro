@@ -1,0 +1,44 @@
+---
+/**
+ * Cabecera de página reutilizable.
+ *
+ * @prop etiqueta - Etiqueta pequeña (rotulo)
+ * @prop titulo - Título principal
+ * @prop lede - Texto descriptivo opcional
+ */
+
+interface Props {
+  etiqueta: string;
+  titulo: string;
+  lede?: string;
+}
+
+const { etiqueta, titulo, lede } = Astro.props;
+---
+
+<header class="cabecera-pagina">
+  <div class="container">
+    <p class="rotulo">{etiqueta}</p>
+    <h1 class="cabecera-pagina__titulo">{titulo}</h1>
+    {lede && <p class="cabecera-pagina__lede">{lede}</p>}
+  </div>
+</header>
+
+<style>
+  .cabecera-pagina {
+    padding-block: var(--space-8) var(--space-4);
+    border-block-end: var(--border-width) solid var(--border-subtle);
+  }
+
+  .cabecera-pagina__titulo {
+    font-size: var(--text-4xl);
+    margin-block-start: var(--space-1);
+  }
+
+  .cabecera-pagina__lede {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-md);
+    color: var(--text-muted);
+    max-width: 60ch;
+  }
+</style>

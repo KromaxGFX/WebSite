@@ -1,0 +1,73 @@
+---
+titulo: Inicio
+descripcion: "Punto de partida para trabajar con Kromax: instalación, primer proyecto y siguiente pasos."
+seccion: Guía
+orden: 1
+destacado: true
+---
+
+# Primeros pasos con Kromax
+
+Bienvenido a la documentación de Kromax. Esta guía te lleva desde cero hasta
+tu primer triángulo renderizado con la API.
+
+## Requisitos previos
+
+- **CMake 3.28+** y un compilador C++20 (GCC 13, Clang 17, MSVC 19.40+).
+- **Git** para clonar los repositorios.
+- **Vulkan SDK** (Linux/Windows), **Xcode** (macOS), o **Windows SDK** (DX12).
+- Opcional: **KromaxCLI** instalado (`cargo install kromax-cli` o descarga el binario).
+
+## Instalación rápida
+
+```bash
+# Clona el núcleo y el backend Vulkan (ejemplo)
+git clone https://github.com/KromaxGFX/KromaxCore.git
+git clone https://github.com/KromaxGFX/KromaxVulkan.git
+
+# Configura y compila el núcleo
+cd KromaxCore
+cmake --preset=release
+cmake --build --preset=release
+
+# Configura y compila el backend Vulkan
+cd ../KromaxVulkan
+cmake --preset=release -DKX_CORE_PATH=../KromaxCore
+cmake --build --preset=release
+```
+
+## Tu primer proyecto
+
+Usa la CLI para generar un proyecto mínimo:
+
+```bash
+kromax init mi-motor --tipo=ejecutable
+cd mi-motor
+kromax backend add vulkan
+kromax build
+./build/mi-motor
+```
+
+Esto crea un ejecutable que abre una ventana y renderiza un triángulo usando
+el backend Vulkan. Cambia `vulkan` por `metal`, `dx12` o `webgpu` para probar
+otros backends sin tocar una línea de código de tu aplicación.
+
+## Estructura de un proyecto Kromax
+
+```
+mi-motor/
+├── CMakeLists.txt          # Configuración de build
+├── kromax.toml             # Configuración del proyecto (backend, shaders, etc.)
+├── src/
+│   ├── main.cpp            # Punto de entrada
+│   └── shaders/
+│       └── triangle.kromax # Shader del contrato
+└── build/                  # Generado por CMake
+```
+
+## Siguientes pasos
+
+- [Arquitectura de la API](/WebSite/docs/arquitectura/) — Entiende el contrato y los backends.
+- [Backends soportados](/WebSite/docs/guia-backends/) — Detalles de cada backend y cómo elegir.
+- [Portabilidad](/WebSite/docs/guia-portabilidad/) — Escribe código que compile en todas partes.
+- [Estilo de código](/WebSite/docs/guia-estilo-de-codigo/) — Convenciones para contribuir.

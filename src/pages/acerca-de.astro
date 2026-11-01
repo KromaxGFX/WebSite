@@ -1,0 +1,181 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Boton from '../components/Boton.astro';
+import { SITE, ruta } from '../lib/site';
+---
+
+<BaseLayout
+  titulo="Acerca de KromaxGFX"
+  descripcion="Información sobre la organización KromaxGFX, su misión, gobernanza y cómo contribuir."
+>
+  <PageHeader
+    etiqueta="Acerca de"
+    titulo="Acerca de KromaxGFX"
+    lede="Organización enfocada en desarrollar Kromax: una API gráfica multiplataforma para todos los dispositivos y sistemas operativos que puedan mostrar gráficos a un usuario."
+  />
+
+  <section class="seccion">
+    <div class="container container--prose">
+      <h2 id="mision">Misión</h2>
+      <p>
+        KromaxGFX existe para resolver un problema fundamental del desarrollo gráfico moderno:
+        la fragmentación de APIs. Hoy en día, para alcanzar todas las plataformas
+        (Windows, Linux, macOS, iOS, Android, Web, consolas) un motor gráfico
+        debe mantener múltiples backends: Vulkan, Metal, DirectX 12, WebGPU, OpenGL...
+        Cada uno con su propio dialecto, sus propias convenciones y sus propios bugs.
+      </p>
+      <p>
+        Kromax no es una capa de abstracción más: es un <strong>contrato de render</strong>
+        minimal, estable y versionado que define <em>qué</em> necesita el motor,
+        dejando a cada backend la libertad de implementar <em>cómo</em> lo hace
+        en su API nativa. El resultado: un solo código de motor, cero dependencias
+        gráficas en el núcleo, y backends intercambiables en tiempo de compilación
+        o incluso en tiempo de ejecución.
+      </p>
+
+      <h2 id="principios">Principios rectores</h2>
+      <ul>
+        <li><strong>Portabilidad real:</strong> el mismo binario del motor compila y funciona
+          en Vulkan, Metal, DirectX 12, WebGPU y OpenGL sin <code>#ifdef</code> en el código de usuario.</li>
+        <li><strong>Sin fugas de abstracción:</strong> la API expone solo lo que todos los
+          backends pueden implementar de forma eficiente. Nada de "funciona en Vulkan
+          pero en Metal hacemos un workaround".</li>
+        <li><strong>Contrato versionado:</strong> la API tiene versión semántica. Los cambios
+          de ruptura son explícitos, documentados y migrables.</li>
+        <li><strong>Tests de conformidad:</strong> cada backend pasa la misma suite de tests.
+          Si un backend pasa, es conforme. No hay sorpresas en producción.</li>
+        <li><strong>Cero dependencias en el núcleo:</strong> el paquete principal de Kromax
+          no enlaza contra Vulkan, Metal, DX12 ni WebGPU. Los backends son plugins
+          que se cargan dinámicamente.</li>
+      </ul>
+
+      <h2 id="gobernanza">Gobernanza</h2>
+      <p>
+        KromaxGFX se rige por los mismos principios que el código que produce:
+        transparencia, meritocracia y estabilidad. Las decisiones de diseño se
+        discuten en issues públicos, los cambios de API pasan por RFC, y los
+        mantenedores de cada backend tienen voz y voto en la dirección de la
+        especificación.
+      </p>
+      <p>
+        La organización no está atada a ninguna empresa: es un proyecto comunitario
+        bajo licencia Apache 2.0. Cualquier persona o entidad puede contribuir,
+        usar el código en proyectos propietarios o crear backends privados.
+      </p>
+
+      <h2 id="licencia">Licencia</h2>
+      <p>
+        Todo el código de la organización (núcleo, backends, herramientas, documentación)
+        se publica bajo <strong>licencia Apache 2.0</strong>. Esto permite uso comercial,
+        modificación, distribución y sublicenciamiento, con la única exigencia de
+        preservar los avisos de copyright y licencia.
+      </p>
+
+      <h2 id="contribuir">Cómo contribuir</h2>
+      <ol>
+        <li>Lee la <a href={ruta('/docs/guia-estilo-de-codigo/')}>guía de estilo de código</a>.</li>
+        <li>Familiarízate con el flujo de <a href={ruta('/docs/guia-ramas-y-commits/')}>ramas y commits</a>.</li>
+        <li>Busca una issue etiquetada <code>good first issue</code> o propone una nueva.</li>
+        <li>Envía un pull request; la CI validará formato, tests y análisis estático.</li>
+      </ol>
+
+      <h2 id="contacto">Contacto</h2>
+      <p>
+        La conversación técnica ocurre en GitHub: issues, discussions y pull requests.
+        Para temas de gobernanza o seguridad, usa el canal correspondiente en el
+        repositorio <code>.github</code> de la organización.
+      </p>
+      <p>
+        <a href={SITE.repositorio} target="_blank" rel="noreferrer noopener">
+          github.com/KromaxGFX
+        </a>
+      </p>
+    </div>
+  </section>
+
+  <section class="cierre">
+    <div class="container container--prose">
+      <h2 class="cierre__titulo">¿Listo para empezar?</h2>
+      <p class="cierre__texto">
+        Explora la documentación, clona el núcleo y escribe tu primer backend.
+        La especificación está abierta y los tests de conformidad te guían.
+      </p>
+      <div class="cierre__acciones">
+        <Boton href={ruta('/docs/guia-inicio/')}>Primeros pasos</Boton>
+        <Boton variante="secundario" href={ruta('/proyectos/')}>Ver repositorios</Boton>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .seccion {
+    padding-block: var(--space-9);
+  }
+
+  .seccion h2 {
+    margin-block-start: var(--space-8);
+    margin-block-end: var(--space-3);
+  }
+
+  .seccion h2:first-child {
+    margin-block-start: 0;
+  }
+
+  .seccion p {
+    margin-block-end: var(--space-4);
+  }
+
+  .seccion ul {
+    margin-block: var(--space-3) var(--space-4);
+    padding-inline-start: var(--space-5);
+  }
+
+  .seccion li {
+    margin-block: var(--space-2);
+    line-height: var(--leading-normal);
+  }
+
+  .seccion ol {
+    margin-block: var(--space-3) var(--space-4);
+    padding-inline-start: var(--space-5);
+  }
+
+  .seccion li + li {
+    margin-block-start: var(--space-2);
+  }
+
+  .seccion code {
+    font-size: 0.9em;
+  }
+
+  .seccion a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .cierre {
+    padding-block: var(--space-9);
+    text-align: center;
+  }
+
+  .cierre__titulo {
+    font-size: var(--text-2xl);
+  }
+
+  .cierre__texto {
+    margin-block-start: var(--space-3);
+    color: var(--text-muted);
+    font-size: var(--text-md);
+    line-height: var(--leading-snug);
+  }
+
+  .cierre__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-5);
+    justify-content: center;
+  }
+</style>

@@ -1,0 +1,143 @@
+---
+titulo: Portabilidad
+descripcion: Escribe código que compile y funcione en Vulkan, Metal, DirectX 12, WebGPU y OpenGL sin cambios.
+seccion: Guía
+orden: 3
+destacado: true
+---
+
+# Portabilidad real
+
+El objetivo de Kromax es que **el mismo código de aplicación compile y funcione**
+en todos los backends sin `#ifdef`, sin ramas por plataforma y sin abstracciones
+con fugas.
+
+## Reglas de oro
+
+### 1. Solo usa el contrato
+
+Nunca incluyas headers de Vulkan, Metal, DX12 o WebGPU en tu código de
+aplicación. Usa exclusivamente `<kromax/core.hpp>` y los tipos del contrato:
+
+```cpp
+// ✅ Correcto: solo tipos del contrato
+kromax::BufferHandle buffer = dispositivo.crearBuffer({
+    .tamano = sizeof(Vertex) * vertices.size(),
+    .uso = kromax::UsoBuffer::VERTEX | kromax::UsoBuffer::TRANSFER_DST,
+    .memoria = kromax::Memoria::GPU_ONLY,
+});
+
+// ❌ Incorrecto: dependencia de API concreta
+VkBuffer vkBuffer; // ¡No hagas esto!
+```
+
+### 2. No asumas capacidades
+
+Consulta los límites del dispositivo en runtime y adapta tu render:
+
+```cpp
+auto limites = dispositivo.limites();
+
+if (limites.maxDescriptorSetsBindless > 0) {
+    // Usa bindless path
+} else {
+    // Fallback a descriptor sets tradicionales
+}
+```
+
+### 3. Shaders en el DSL del contrato
+
+Escribe shaders en `.kromax` (subconjunto de GLSL/WGSL tipado). El compilador
+`KromaxShaderC` genera SPIR-V, DXIL, Metal IR y WGSL válidos para cada backend.
+
+```glsl
+// shaders/mesh.kromax
+#version 460 core // versión del DSL, no GLSL real
+
+layout(set = 0, binding = 0) uniform Camera {
+    mat4 viewProj;
+} camera;
+
+layout(location = 0) in vec3 inPos;
+layout(location = 1) in vec3 inNormal;
+
+layout(location = 0) out vec3 worldNormal;
+
+void main() {
+    gl_Position = camera.viewProj * vec4(inPos, 1.0);
+    worldNormal = inNormal;
+}
+```
+
+### 4. Sincronización explícita
+
+El contrato expone barreras y semáforos genéricos. No asumas el modelo de
+sincronización de Vulkan (VkPipelineBarrier) ni de DX12 (ResourceBarrier).
+Usa `kromax::Barrera` y `kromax::Semaphore`.
+
+```cpp
+cmd.barrera(kromax::Barrera{
+    .srcEtapa = kromax::EtapaPipeline::TRANSFER,
+    .dstEtapa = kromax::EtapaPipeline::VERTEX_SHADER,
+    .srcAcceso = kromax::AccesoMemoria::TRANSFER_WRITE,
+    .dstAcceso = kromax::AccesoMemoria::VERTEX_ATTRIBUTE_READ,
+    .buffer = buffer,
+});
+```
+
+### 5. Formatos y propiedades consultados
+
+No hardcodees `VK_FORMAT_R8G8B8A8_SRGB` ni `DXGI_FORMAT_R8G8B8A8_UNORM_SRGB`.
+Usa `kromax::Formato::RGBA8_SRGB` y deja que el backend elija la representación
+nativa.
+
+```cpp
+auto props = dispositivo.propiedadesFormato(kromax::Formato::RGBA8_SRGB);
+if (!props.soportado) {
+    // Formato no disponible en este backend/dispositivo
+}
+```
+
+## Patrones comunes
+
+### Recursos frame-local vs persistentes
+
+```cpp
+// Persistente: vive varios frames (texturas, buffers de vértices, shaders)
+auto texture = dispositivo.crearTextura(descTextura);
+
+// Frame-local: se recrea o recicla cada frame (uniform buffers, command buffers)
+auto uniformFrame = dispositivo.crearBuffer({
+    .tamano = sizeof(FrameData),
+    .uso = kromax::UsoBuffer::UNIFORM | kromax::UsoBuffer::MAP_WRITE,
+    .memoria = kromax::Memoria::CPU_TO_GPU, // persistente mapeado
+});
+```
+
+### Carga de assets asíncrona
+
+```cpp
+// En hilo de carga
+auto staging = dispositivo.crearBuffer({ .tamano = size, .uso = TRANSFER_SRC, .memoria = CPU_TO_GPU });
+memcpy(staging.mapear(), data, size);
+staging.desmapear();
+
+// En hilo de render (mismo frame o siguiente)
+cmd.copiarBuffer(staging, gpuBuffer, size);
+cmd.barrera({ .srcEtapa = TRANSFER, .dstEtapa = VERTEX_SHADER, .buffer = gpuBuffer });
+```
+
+## Testing de portabilidad
+
+1. **CI multi-backend**: compila y ejecuta tests en Vulkan, Metal, DX12, WebGPU.
+2. **Conformance suite**: `kromax conformance run` valida comportamiento idéntico.
+3. **Shader validation**: `kromax shader compile` falla si el DSL usa features no portables.
+
+## Checklist antes de commit
+
+- [ ] Sin includes de APIs gráficas en código de aplicación.
+- [ ] Sin `#ifdef KX_VULKAN` / `#ifdef KX_METAL` etc.
+- [ ] Shaders en `.kromax`, validados por `kromax shader compile`.
+- [ ] Límites consultados en runtime, no asumidos.
+- [ ] Formatos y propiedades consultados via `dispositivo.propiedadesFormato()`.
+- [ ] Tests de conformidad en verde para backends objetivo.

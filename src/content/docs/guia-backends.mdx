@@ -1,0 +1,80 @@
+---
+titulo: Backends soportados
+descripcion: Detalle de cada backend gráfico disponible, plataformas, estado y cómo elegir.
+seccion: Guía
+orden: 2
+destacado: true
+---
+
+# Backends soportados
+
+Kromax separa el **contrato** (qué necesita el render) de la **implementación**
+(cómo lo hace cada API). Cada backend es un repositorio independiente que
+implementa `IRenderBackend`.
+
+## Tabla de backends
+
+| Backend | Repositorio | Plataformas | API mínima | Estado |
+|---------|-------------|-------------|------------|--------|
+| **Vulkan** | [KromaxVulkan](https://github.com/KromaxGFX/KromaxVulkan) | Linux, Windows, Android, macOS* | Vulkan 1.3 | Activo |
+| **Metal** | [KromaxMetal](https://github.com/KromaxGFX/KromaxMetal) | macOS, iOS, iPadOS, tvOS, visionOS | Metal 3 | Activo |
+| **DirectX 12** | [KromaxDX12](https://github.com/KromaxGFX/KromaxDX12) | Windows 10/11, Xbox Series X\|S | DX12 / Shader Model 6.6 | Activo |
+| **WebGPU** | [KromaxWebGPU](https://github.com/KromaxGFX/KromaxWebGPU) | Navegadores (WASM), Linux, macOS, Windows (native) | WebGPU 1.0 | Activo |
+| **OpenGL** | [KromaxOpenGL](https://github.com/KromaxGFX/KromaxOpenGL) | Cualquier con OpenGL 4.6 / ES 3.2 | OpenGL 4.6 Core / ES 3.2 | Mantenimiento |
+
+\* macOS vía MoltenVK (traducción Vulkan→Metal). Para macOS nativo, usa el backend Metal.
+
+## Cómo elegir
+
+| Situación | Backend recomendado |
+|-----------|---------------------|
+| Linux / Windows nativo / Android | Vulkan |
+| macOS / iOS / visiónOS nativo | Metal |
+| Windows (solo) / Xbox | DirectX 12 |
+| Navegador (web) | WebGPU |
+| Hardware antiguo / CI sin GPU / embebido | OpenGL |
+| Múltiples plataformas desde un build | Compila varios backends y selecciona en runtime |
+
+## Selección de backend en runtime
+
+La aplicación descubre backends disponibles y elige uno:
+
+```cpp
+#include <kromax/core.hpp>
+#include <kromax/backend_loader.hpp>
+
+int main() {
+    // Descubre backends en rutas estándar y KX_BACKEND_PATH
+    auto backends = kromax::descubrirBackends();
+
+    // Selecciona preferido (ej. "vulkan", "metal", "dx12", "webgpu", "opengl")
+    auto backend = kromax::seleccionarBackend(backends, "vulkan");
+    if (!backend) {
+        // Fallback automático al primero disponible
+        backend = backends.front();
+    }
+
+    // Crea dispositivo con el backend elegido
+    kromax::Dispositivo dispositivo = backend->crearDispositivo({});
+    // ...
+}
+```
+
+## Variables de entorno
+
+- `KX_BACKEND_PATH` — Rutas adicionales (separadas por `:` / `;`) donde buscar backends.
+- `KX_BACKEND_PREFERIDO` — Nombre del backend a intentar primero.
+- `KX_VALIDACION=1` — Activa capas de validación / debug layer del backend.
+
+## Estado de características por backend
+
+| Característica | Vulkan | Metal | DX12 | WebGPU | OpenGL |
+|----------------|:------:|:-----:|:----:|:------:|:------:|
+| Bindless rendering | ✅ | ✅ | ✅ | ✅ | 🟡 (emulado) |
+| Compute shaders | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Ray tracing | ✅ (ext) | 🟡 | ✅ (DXR) | 🟡 | ❌ |
+| Mesh shaders | ✅ (ext) | ✅ | ✅ (SM 6.5+) | ❌ | ❌ |
+| Multiview / VR | ✅ | ✅ | ✅ | 🟡 | 🟡 |
+| Timeline semaphores | ✅ | ✅ | ✅ | ❌ | ❌ |
+
+Leyenda: ✅ = completo, 🟡 = parcial / en progreso, ❌ = no soportado por la API.

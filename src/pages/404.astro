@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Boton from '../components/Boton.astro';
+import { ruta } from '../lib/site';
+---
+
+<BaseLayout titulo="Página no encontrada" descripcion="La página que buscas no existe.">
+  <section class="error">
+    <div class="container container--prose">
+      <h1 class="error__codigo">404</h1>
+      <h2 class="error__titulo">Página no encontrada</h2>
+      <p class="error__texto">
+        Lo sentimos, no hemos encontrado la página que buscabas. Puede que se haya
+        movido, que el enlace sea incorrecto o que la página nunca haya existido.
+      </p>
+      <div class="error__acciones">
+        <Boton href={ruta('/')}>Volver al inicio</Boton>
+        <Boton variante="secundario" href={ruta('/docs/')}>Ir a la documentación</Boton>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .error {
+    min-height: 60vh;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding-block: var(--space-10);
+  }
+
+  .error__codigo {
+    margin: 0;
+    font-size: clamp(6rem, 15vw, 12rem);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--border-subtle);
+    letter-spacing: -0.03em;
+  }
+
+  .error__titulo {
+    margin-block: var(--space-4) var(--space-2);
+    font-size: var(--text-2xl);
+  }
+
+  .error__texto {
+    max-width: 36ch;
+    margin-inline: auto;
+    color: var(--text-muted);
+    font-size: var(--text-md);
+  }
+
+  .error__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-6);
+    justify-content: center;
+  }
+</style>

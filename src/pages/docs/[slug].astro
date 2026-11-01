@@ -1,0 +1,252 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { obtenerDocs } from '../../lib/docs';
+import { ruta } from '../../lib/site';
+
+export async function getStaticPaths() {
+  // IDs de las páginas de documentación (generados desde src/content/docs/*.mdx)
+  const DOC_IDS = [
+    'guia-inicio',
+    'guia-backends',
+    'guia-portabilidad',
+    'arquitectura',
+    'guia-estilo-de-codigo',
+    'guia-ramas-y-commits',
+  ];
+  
+  return DOC_IDS.map((id) => ({
+    params: { slug: id },
+    props: { id },
+  }));
+}
+
+const { id } = Astro.props;
+const docModule = await import(`../../content/docs/${id}.mdx`);
+const { Content } = docModule;
+const { frontmatter } = docModule;
+
+const docs = await obtenerDocs();
+const currentIndex = docs.findIndex((d) => d.id === id);
+const anterior = currentIndex > 0 ? docs[currentIndex - 1] : null;
+const siguiente = currentIndex < docs.length - 1 ? docs[currentIndex + 1] : null;
+---
+
+<BaseLayout
+  titulo={frontmatter.titulo}
+  descripcion={frontmatter.descripcion}
+>
+  <article class="documento">
+    <header class="documento__cabecera">
+      <nav class="documento__nav" aria-label="Navegación de documentación">
+        <ol class="documento__breadcrumb">
+          <li><a href={ruta('/docs/')}>Documentación</a></li>
+          <li aria-current="page">{frontmatter.titulo}</li>
+        </ol>
+      </nav>
+      <h1 class="documento__titulo">{frontmatter.titulo}</h1>
+      <p class="documento__descripcion">{frontmatter.descripcion}</p>
+    </header>
+
+    <div class="documento__contenido">
+      <Content />
+    </div>
+
+    <nav class="documento__paginacion" aria-label="Paginación de documentación">
+      {anterior && (
+        <a class="documento__enlace documento__enlace--anterior" href={ruta(`/docs/${anterior.id}/`)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          <span>
+            <small>Anterior</small>
+            {anterior.data.titulo}
+          </span>
+        </a>
+      )}
+      {siguiente && (
+        <a class="documento__enlace documento__enlace--siguiente" href={ruta(`/docs/${siguiente.id}/`)}>
+          <span>
+            <small>Siguiente</small>
+            {siguiente.data.titulo}
+          </span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </a>
+      )}
+    </nav>
+  </article>
+</BaseLayout>
+
+<style>
+  .documento {
+    max-width: var(--layout-prose);
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-5);
+  }
+
+  .documento__cabecera {
+    margin-block-end: var(--space-8);
+    padding-block-end: var(--space-6);
+    border-block-end: var(--border-width) solid var(--border);
+  }
+
+  .documento__breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+  }
+
+  .documento__breadcrumb li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .documento__breadcrumb li:not(:first-child)::before {
+    content: '/';
+    color: var(--border);
+  }
+
+  .documento__breadcrumb a {
+    color: var(--text-muted);
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .documento__breadcrumb a:hover {
+    color: var(--accent);
+  }
+
+  .documento__breadcrumb li[aria-current='page'] {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .documento__titulo {
+    margin: 0 0 var(--space-2);
+  }
+
+  .documento__descripcion {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: var(--text-md);
+  }
+
+  .documento__contenido {
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+  }
+
+  .documento__contenido h2 {
+    margin-block-start: var(--space-8);
+    margin-block-end: var(--space-3);
+    padding-block-start: var(--space-4);
+    border-block-start: var(--border-width) solid var(--border);
+  }
+
+  .documento__contenido h2:first-child {
+    margin-block-start: 0;
+    padding-block-start: 0;
+    border-block-start: none;
+  }
+
+  .documento__contenido h3 {
+    margin-block-start: var(--space-6);
+    margin-block-end: var(--space-2);
+  }
+
+  .documento__contenido p {
+    margin-block-end: var(--space-4);
+  }
+
+  .documento__contenido ul,
+  .documento__contenido ol {
+    margin-block: var(--space-3) var(--space-4);
+    padding-inline-start: var(--space-5);
+  }
+
+  .documento__contenido li {
+    margin-block: var(--space-2);
+  }
+
+  .documento__contenido code {
+    font-size: 0.9em;
+  }
+
+  .documento__contenido pre {
+    margin-block: var(--space-4);
+  }
+
+  .documento__contenido blockquote {
+    margin: var(--space-4) 0;
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--border-width) solid var(--accent);
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .documento__contenido a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .documento__paginacion {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-block-start: var(--space-10);
+    padding-block-start: var(--space-6);
+    border-block-start: var(--border-width) solid var(--border);
+  }
+
+  .documento__enlace {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-width) solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: var(--text-sm);
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .documento__enlace:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .documento__enlace small {
+    display: block;
+    color: var(--text-subtle);
+    font-size: var(--text-xs);
+    margin-block-end: 0.125rem;
+  }
+
+  .documento__enlace--anterior {
+    flex-direction: row;
+  }
+
+  .documento__enlace--siguiente {
+    flex-direction: row-reverse;
+  }
+
+  @media (max-width: 48rem) {
+    .documento__paginacion {
+      flex-direction: column;
+    }
+
+    .documento__enlace--siguiente {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

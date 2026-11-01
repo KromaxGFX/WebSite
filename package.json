@@ -1,0 +1,36 @@
+{
+  "name": "kromaxgfx-site",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sitio de presentación de la organización KromaxGFX",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "verificar": "node scripts/verificar-enlaces.mjs",
+    "verificar:todo": "npm run check && npm run build && npm run verificar",
+    "imagenes": "node scripts/generar-imagenes.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^8.1.0",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/newsreader": "^5.3.0",
+    "astro": "^7.4.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.11",
+    "sharp": "^0.35.5",
+    "typescript": "^5.9.3"
+  }
+}
